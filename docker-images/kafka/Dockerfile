@@ -4,6 +4,12 @@ ARG KAFKA_DIST_DIR
 ARG KAFKA_VERSION
 ARG THIRD_PARTY_LIBS
 ARG strimzi_version
+#####
+# Add Kafka Exporter
+#####
+ARG KAFKA_EXPORTER_ARCH=amd64
+ENV KAFKA_EXPORTER_VERSION=1.2.0
+ENV KAFKA_EXPORTER_HOME=/opt/kafka-exporter
 
 RUN yum -y install gettext nmap-ncat stunnel net-tools bind-utils && yum clean all -y
 
@@ -21,19 +27,10 @@ ENV STRIMZI_VERSION=${strimzi_version}
 COPY $KAFKA_DIST_DIR $KAFKA_HOME
 COPY ./scripts/ $KAFKA_HOME
 
-#####
-# Add Kafka Exporter
-#####
-ENV KAFKA_EXPORTER_HOME=/opt/kafka-exporter
-ENV KAFKA_EXPORTER_VERSION=1.2.0
-ENV KAFKA_EXPORTER_CHECKSUM="7afa40365ddf0cb0a88457684bd64d565e250c7e5a4536ba7f9d37d02d2808c3b07766f94e0b1338beb296573ade29db630948c931be44bde416c0410b5d783b  kafka_exporter-${KAFKA_EXPORTER_VERSION}.linux-amd64.tar.gz"
-
-RUN curl -LO https://github.com/danielqsj/kafka_exporter/releases/download/v${KAFKA_EXPORTER_VERSION}/kafka_exporter-${KAFKA_EXPORTER_VERSION}.linux-amd64.tar.gz \
-    && echo $KAFKA_EXPORTER_CHECKSUM > kafka_exporter-${KAFKA_EXPORTER_VERSION}.linux-amd64.tar.gz.sha512 \
-    && sha512sum --check kafka_exporter-${KAFKA_EXPORTER_VERSION}.linux-amd64.tar.gz.sha512 \
+RUN curl -LO https://github.com/danielqsj/kafka_exporter/releases/download/v${KAFKA_EXPORTER_VERSION}/kafka_exporter-${KAFKA_EXPORTER_VERSION}.linux-${KAFKA_EXPORTER_ARCH}.tar.gz \
     && mkdir $KAFKA_EXPORTER_HOME \
-    && tar xvfz kafka_exporter-${KAFKA_EXPORTER_VERSION}.linux-amd64.tar.gz -C $KAFKA_EXPORTER_HOME --strip-components=1 \
-    && rm -f kafka_exporter-${KAFKA_EXPORTER_VERSION}.linux-amd64.tar.gz*
+    && tar xvfz kafka_exporter-${KAFKA_EXPORTER_VERSION}.linux-${KAFKA_EXPORTER_ARCH}.tar.gz -C $KAFKA_EXPORTER_HOME --strip-components=1 \
+    && rm -f kafka_exporter-${KAFKA_EXPORTER_VERSION}.linux-${KAFKA_EXPORTER_ARCH}.tar.gz*
 
 COPY ./exporter-scripts $KAFKA_EXPORTER_HOME
 

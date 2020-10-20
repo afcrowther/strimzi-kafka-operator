@@ -10,6 +10,20 @@ java_images="operator jmxtrans"
 kafka_image="kafka"
 kafka_images="kafka test-client"
 
+function get_os_arch_for_kafka_exporter {
+    arch=$(uname -i)
+    if [[ $arch == x86_64* ]]
+    then
+        echo "amd64"
+    elif [[ $arch == arm* ]]
+    then
+        echo "arm64"
+    elif [[ $arch == *"unknown"* ]]
+    then
+        echo "arm64"
+    fi
+}
+
 function dependency_check { 
 
     # Check for bash >= 4
@@ -162,6 +176,13 @@ function build {
     if [[ $targets == *"docker_build"* ]]
     then
         fetch_and_unpack_kafka_binaries "$tag" "$java_version"
+    fi
+
+    arch=$(get_os_arch_for_kafka_exporter)
+
+    if [[ $arch == "arm64"  ]]
+    then
+        DOCKER_BUILD_ARGS="$DOCKER_BUILD_ARGS --build-arg KAFKA_EXPORTER_ARCH=${arch}"
     fi
 
     for kafka_version in "${!version_checksums[@]}"
